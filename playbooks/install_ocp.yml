@@ -1,0 +1,30 @@
+---
+- hosts: localhost
+  pre_tasks:
+    - name: Get VMs
+      community.libvirt.virt:
+        command: list_vms
+      register: vms
+    - name: Force stop VM
+      community.libvirt.virt:
+        name: '{{ ocp_clustername }}.{{ ocp_basedomain }}'
+        state: destroyed
+      when: 'ocp_clustername + "." + ocp_basedomain in vms.list_vms'
+    - name: Delete VM
+      community.libvirt.virt:
+        name: '{{ ocp_clustername }}.{{ ocp_basedomain }}'
+        command: undefine
+      when: 'ocp_clustername + "." + ocp_basedomain in vms.list_vms'
+    - name: Delete VM's disk if exists
+      file:
+        path: "{{ vm_disk_location }}"
+        state: absent
+    - name: Delete install ISO
+      become: true
+      file:
+        path: "{{ vm_iso_location }}"
+        state: absent
+  roles:
+    - ocp_prep
+    - vm_install
+

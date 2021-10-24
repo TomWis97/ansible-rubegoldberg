@@ -1,0 +1,5 @@
+---
+vm_memory_kib: 33554432
+vm_cpus: 14
+vm_iso_location: /tmp/ocp-live.iso
+vm_disk_size: 120G

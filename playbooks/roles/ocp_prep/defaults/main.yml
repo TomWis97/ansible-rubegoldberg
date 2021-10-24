@@ -1,0 +1,9 @@
+---
+ocp_basedomain: redhat.com
+ocp_clustername: ocp
+ocp_clusternetwork: '10.128.0.0/14'
+ocp_machinenetwork: '192.168.126.0/24'
+ocp_servicenetwork: '172.30.0.0/16'
+ocp_installationdisk: /dev/vda
+vm_iso_location: /tmp/ocp-live.iso
+ocp_info_location: /tmp/{{ ocp_clustername }}.{{ ocp_basedomain }}

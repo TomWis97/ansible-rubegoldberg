@@ -1,0 +1,65 @@
+---
+- block:
+    - name: Create working directory
+      tempfile:
+        state: directory
+        suffix: ocp-prep
+      register: workdir
+    - name: Create subdirs in working directory
+      file:
+        state: directory
+        path: '{{ workdir.path }}/{{ item }}'
+      loop:
+        - downloads
+        - cluster
+    - name: Download openshift-install
+      get_url:
+        url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-install-linux.tar.gz
+        dest: '{{ workdir.path }}/downloads/openshift-install-linux.tar.gz'
+    - name: Unpack openshift-install
+      unarchive:
+        src: '{{ workdir.path }}/downloads/openshift-install-linux.tar.gz'
+        dest: '{{ workdir.path }}/downloads/'
+    - name: Download RHCOS ISO
+      get_url:
+        url: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/latest/rhcos-live.x86_64.iso
+        dest: '{{ workdir.path }}/downloads/rhcos-live.iso'
+    - name: Download coreos-installer
+      get_url:
+        url: https://mirror.openshift.com/pub/openshift-v4/clients/coreos-installer/latest/coreos-installer
+        dest: '{{ workdir.path }}/downloads/coreos-installer'
+        mode: '755'
+    - name: Create install-config.yaml from template
+      template:
+        src: install-config.yaml.j2
+        dest: '{{ workdir.path }}/cluster/install-config.yaml'
+    - name: Generate ignition config
+      command:
+        chdir: '{{ workdir.path }}/cluster'
+        cmd: '{{ workdir.path }}/downloads/openshift-install create single-node-ignition-config'
+    - name: Embed ignition config in ISO
+      command:
+        chdir: '{{ workdir.path }}'
+        cmd: './downloads/coreos-installer iso ignition embed -f -i cluster/bootstrap-in-place-for-live-iso.ign downloads/rhcos-live.iso'
+    - name: Copy resulting iso
+      copy:
+        src: '{{ workdir.path }}/downloads/rhcos-live.iso'
+        remote_src: true
+        dest: '{{ vm_iso_location }}'
+    - name: Store kubeadmin password
+      set_fact:
+        kubeadmin_password: '{{ lookup("file", workdir.path + "/cluster/auth/kubeadmin-password") }}'
+        kubeadmin_kubeconfig: '{{ lookup("file", workdir.path + "/cluster/auth/kubeconfig") }}'
+    - name: Store cluster information
+      copy:
+        src: "{{ workdir.path }}/cluster"
+        remote_src: true
+        dest: "{{ ocp_info_location }}"
+    - name: Return kubeadmin password
+      debug:
+        msg: "You will be able to login as kubeadmin with password: {{ kubeadmin_password }}"
+  always:
+    - name: Cleaning up working directory
+      file:
+        path: '{{ workdir.path }}'
+        state: absent

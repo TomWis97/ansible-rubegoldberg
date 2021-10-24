@@ -1,0 +1,13 @@
+---
+- name: Create disk image
+  command:
+    cmd: 'qemu-img create -f qcow2 "{{ vm_disk_location }}" {{ vm_disk_size }}'
+    creates: '{{ vm_disk_location }}'
+- name: Create virtual machine
+  community.libvirt.virt:
+    command: define
+    xml: "{{ lookup('template', 'vm.xml.j2') }}"
+- name: Turn on VM
+  community.libvirt.virt:
+    command: start
+    name: '{{ ocp_clustername }}.{{ ocp_basedomain }}'
