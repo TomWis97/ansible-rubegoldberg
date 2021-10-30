@@ -9,8 +9,9 @@ This is a small hobby-ish project. I used it to become more proficient in AWX an
 
 ## System requirements
 - At least 32GB of memory (and a 16GB swapfile)
-- A somewhat beefy
-- A DHCP reservation
+- A somewhat beefy CPU (>6 cores)
+- SSD storage
+- A DHCP reservation for the configured MAC address
 - OpenShift's DNS requirements, pointing to the reservation.
 - Libvirtd set-up.
 
