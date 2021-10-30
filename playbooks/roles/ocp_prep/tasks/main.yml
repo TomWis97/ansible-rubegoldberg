@@ -63,3 +63,6 @@
       file:
         path: '{{ workdir.path }}'
         state: absent
+- name: Set kubeconfig var for further use
+  set_fact:
+    kubeconfig_location: "{{ ocp_info_location }}/cluster/auth/kubeconfig"

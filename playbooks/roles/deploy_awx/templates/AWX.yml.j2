@@ -1,0 +1,37 @@
+---
+kind: List
+items:
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    name: awx-postgres
+    namespace: {{ awx_namespace }}
+  stringData:
+    host: {{ awx_pg_service }}
+    port: "5432"
+    database: {{ awx_pg_db }}
+    username: {{ awx_pg_user }} 
+    password: "{{ awx_pg_password }}"
+    sslmode: prefer
+    type: unmanaged
+  type: Opaque
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    name: awx-password
+    namespace: {{ awx_namespace }}
+  stringData:
+    password: {{ awx_admin_password }}
+- apiVersion: awx.ansible.com/v1beta1
+  kind: AWX
+  metadata:
+    name: awx
+    namespace: {{ awx_namespace }}
+  spec:
+    service_type: ClusterIP
+    ingress_type: ingress
+    hostname: awx.apps.{{ ocp_clustername }}.{{ ocp_basedomain }}
+    postgres_configuration_secret: awx-postgres
+    admin_user: admin
+    admin_email: root@{{ ocp_clustername }}.{{ ocp_basedomain }}
+    admin_password_secret: awx-password

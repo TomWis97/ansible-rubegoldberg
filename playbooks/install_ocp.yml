@@ -27,4 +27,5 @@
   roles:
     - ocp_prep
     - vm_install
+    - deploy_awx
 

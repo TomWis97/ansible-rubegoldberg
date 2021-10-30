@@ -1,0 +1,88 @@
+---
+- name: Remove namespace to force re-install
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_location }}"
+    wait: yes
+    kind: Project
+    name: "{{ awx_namespace }}"
+    state: absent
+  when:
+    - awx_force_reinstall is defined
+    - awx_force_reinstall == "true"
+
+- block:
+    - name: Create working directory for AWX Operator
+      tempfile:
+        state: directory
+        suffix: ocp-prep
+      register: workdir
+
+    - name: Get latest release name from GitHub
+      uri:
+        url: https://api.github.com/repos/ansible/awx-operator/releases
+        return_content: true
+      register: awx_releases
+      tags:
+        - get_release
+        
+    - name: Return latest release
+      debug:
+        msg: "Discovered AWX Operator release: {{ awx_releases.content | from_json | json_query('[0].tag_name') }}"
+      tags:
+        - never
+        - get_release
+
+    - name: Clone AWX Operator repository
+      git:
+        dest: "{{ workdir.path }}/awx-operator"
+        repo: https://github.com/ansible/awx-operator
+        version: "{{ awx_releases.content | from_json | json_query('[0].tag_name') }}"
+
+    - name: Remove kubectl from Makefile
+      replace:
+        path: "{{ workdir.path }}/awx-operator/Makefile"
+        regexp: " \\| kubectl apply -f -"
+        replace: " > operator.yaml"
+
+    - name: Run makefile
+      make:
+        chdir: "{{ workdir.path }}/awx-operator"
+        params:
+          NAMESPACE: "{{ awx_namespace }}"
+        target: deploy
+
+    - name: Create Operator
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_location }}"
+        apply: yes
+        wait: yes
+        definition: "{{ lookup('file', workdir.path +  '/awx-operator/operator.yaml') }}"
+        
+  always:
+    - name: Clean up working directory
+      file:
+        path: "{{ workdir.path }}"
+        state: absent
+      tags: cleanup
+
+- name: Deploy ephemeral PostgresDB
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_location }}"
+    apply: yes
+    wait: yes
+    definition: "{{ lookup('template', 'postgresql.yml.j2') }}"
+
+- name: Create AWX instance
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_location }}"
+    apply: yes
+    wait: yes
+    definition: "{{ lookup('template', 'AWX.yml.j2') }}"
+
+- name: Wait for AWX to become ready
+  uri:
+    url: "http://awx.apps.{{ ocp_clustername }}.{{ ocp_basedomain }}/api/v2/ping/"
+  register: awx_status
+  retries: 60
+  delay: 10
+  until: awx_status.status == 200

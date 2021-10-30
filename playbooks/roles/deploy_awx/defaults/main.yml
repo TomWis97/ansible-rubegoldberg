@@ -1,0 +1,7 @@
+---
+awx_namespace: awx
+awx_pg_db: awxdb
+awx_pg_user: awxuser
+awx_pg_password: supersecret
+awx_pg_service: awx-postgres
+awx_admin_password: admin

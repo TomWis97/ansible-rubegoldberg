@@ -2,4 +2,4 @@
 collections:
 - name: community.libvirt
 - name: community.general
-- name: community.kubernetes
+- name: kubernetes.core
