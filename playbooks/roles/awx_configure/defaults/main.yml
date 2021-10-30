@@ -1,0 +1,2 @@
+---
+awx_api: http://awx.apps.{{ ocp_clustername }}.{{ ocp_basedomain }}

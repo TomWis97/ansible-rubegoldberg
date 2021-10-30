@@ -1,0 +1,30 @@
+---
+- name: Configure Project
+  uri:
+    url: "{{ awx_api }}/api/v2/projects/"
+    method: POST
+    user: admin
+    password: "{{ awx_admin_password }}"
+    force_basic_auth: yes
+    body_format: json
+    status_code:
+      - 200
+      - 201
+    body:
+      name: Ansible-RubeGoldberg
+      description: TomWis97's Ansible-RubeGoldberg repository
+      local_path: ''
+      scm_type: git
+      scm_url: https://github.com/TomWis97/ansible-rubegoldberg
+      scm_branch: ''
+      scm_refspec: ''
+      scm_clean: false
+      scm_track_submodules: false
+      scm_delete_on_update: false
+      credential:
+      timeout: 0
+      organization: 1
+      scm_update_on_launch: false
+      scm_update_cache_timeout: 0
+      allow_override: false
+      default_environment:
