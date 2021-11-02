@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: gitlab-ee
+    app.kubernetes.io/component: gitlab-ee
+    app.kubernetes.io/instance: gitlab-ee
+  name: gitlab-ee
+  namespace: gitlab
+spec:
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: 22-tcp
+    port: 22
+    protocol: TCP
+    targetPort: 22
+  - name: 80-tcp
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  - name: 443-tcp
+    port: 443
+    protocol: TCP
+    targetPort: 443
+  selector:
+    deployment: gitlab-ee
+  sessionAffinity: None
+  type: ClusterIP

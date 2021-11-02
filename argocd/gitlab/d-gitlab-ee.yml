@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  generation: 2
+  labels:
+    app: gitlab-ee
+    app.kubernetes.io/component: gitlab-ee
+    app.kubernetes.io/instance: gitlab-ee
+  name: gitlab-ee
+  namespace: gitlab
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      deployment: gitlab-ee
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewApp
+      creationTimestamp: null
+      labels:
+        deployment: gitlab-ee
+    spec:
+      containers:
+      - image: gitlab/gitlab-ee@sha256:005cc48dd558e319a261efaf4aae5b2cbdf1fe2503fd78239e2c5ccd83e2f7bc
+        imagePullPolicy: IfNotPresent
+        name: gitlab-ee
+        ports:
+        - containerPort: 22
+          protocol: TCP
+        - containerPort: 443
+          protocol: TCP
+        - containerPort: 80
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/gitlab
+          name: gitlab-ee-volume-1
+        - mountPath: /var/log/gitlab
+          name: gitlab-ee-volume-2
+        - mountPath: /var/opt/gitlab
+          name: gitlab-ee-volume-3
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: gitlab-ee-volume-1
+      - emptyDir: {}
+        name: gitlab-ee-volume-2
+      - emptyDir: {}
+        name: gitlab-ee-volume-3

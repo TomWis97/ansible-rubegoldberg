@@ -1,0 +1,24 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  generation: 2
+  labels:
+    app: gitlab-ee
+    app.kubernetes.io/component: gitlab-ee
+    app.kubernetes.io/instance: gitlab-ee
+  name: gitlab-ee
+  namespace: gitlab
+spec:
+  lookupPolicy:
+    local: false
+  tags:
+  - annotations:
+      openshift.io/imported-from: gitlab/gitlab-ee:latest
+    from:
+      kind: DockerImage
+      name: gitlab/gitlab-ee:latest
+    generation: 2
+    importPolicy: {}
+    name: latest
+    referencePolicy:
+      type: Source
