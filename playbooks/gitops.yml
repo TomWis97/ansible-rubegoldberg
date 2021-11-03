@@ -1,0 +1,7 @@
+---
+- hosts: localhost
+  vars:
+    ocp_clustername: ocp
+  roles:
+    - gitops_deploy
+

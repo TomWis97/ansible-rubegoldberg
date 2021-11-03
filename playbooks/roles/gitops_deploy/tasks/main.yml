@@ -1,0 +1,42 @@
+---
+- name: Create Subscription for openshift-gitops-operator
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+    username: "{{ openshift_user | default(omit) }}"
+    password: "{{ openshift_password | default(omit) }}"
+    wait: yes
+    apply: yes
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: Subscription
+      metadata:
+        name: openshift-gitops-operator
+        namespace: openshift-operators
+      spec:
+        channel: stable
+        name: openshift-gitops-operator
+        source: redhat-operators
+        sourceNamespace: openshift-marketplace
+
+#TODO
+# - Wait for CRD
+# - Configure cluster-admin for ArgoCD (https://argocd-operator.readthedocs.io/en/latest/install/openshift/#rbac)
+# - Configure application in ArgoCD
+# - Configure GitLab
+
+- name: Create ArgoCD GitLab project
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+    username: "{{ openshift_user | default(omit) }}"
+    password: "{{ openshift_password | default(omit) }}"
+    wait: yes
+    apply: yes
+    namespace: openshift-gitops
+    definition:
+      apiVersion: argoproj.io/v1alpha1
+      kind: AppProject
+      metadata:
+        name: gitlab
+      spec:
+        description: Project for GitLab deployment
+
