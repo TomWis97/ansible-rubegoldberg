@@ -28,3 +28,76 @@
       scm_update_cache_timeout: 0
       allow_override: false
       default_environment:
+
+- name: Create serviceaccount for AWX
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_location }}"
+    namespace: "{{ awx_namespace }}"
+    wait: yes
+    state: present
+    name: awx-access
+    api_version: v1
+    kind: ServiceAccount
+    state: present
+
+- name: Grant SA cluster-admin permissions
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_location }}"
+    apply: yes
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: awx-clusteradmin
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: cluster-admin
+      subjects:
+        - kind: ServiceAccount
+          name: awx-access
+          namespace: awx
+
+- name: Grab name of Secret of SA
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ kubeconfig_location }}"
+    name: awx-access
+    namespace: "{{ awx_namespace }}"
+    api_version: v1
+    kind: ServiceAccount
+  register: sa_data
+
+- name: Get token
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ kubeconfig_location }}"
+    name: "{{ item.name }}"
+    namespace: "{{ awx_namespace }}"
+    api_version: v1
+    kind: Secret
+  loop: "{{ sa_data.resources[0].secrets }}"
+  when: "'token' in item.name"
+  register: sa_token
+
+- name: Create AWX Credential for SA
+  uri:
+    url: "{{ awx_api }}/api/v2/credentials/"
+    method: POST
+    user: admin
+    password: "{{ awx_admin_password }}"
+    force_basic_auth: yes
+    body_format: json
+    status_code:
+      - 200
+      - 201
+    body:
+      description: "Token for AWX"
+      name: "awx-access"
+      organization: 1
+      #credential_type: "OpenShift or Kubernetes API Bearer Token"
+      credential_type: 16
+      inputs:
+        host: "https://kubernetes.default.svc.cluster.local"
+        verify_ssl: false
+        bearer_token: "{{ item.resources[0].data.token | b64decode }}"
+  when: "'resources' in item"
+  loop: "{{ sa_token.results }}"
