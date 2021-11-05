@@ -19,13 +19,13 @@
         sourceNamespace: openshift-marketplace
 
 - name: Wait for CRDs
-  k8s_info:
+  kubernetes.core.k8s_info:
     kubeconfig: "{{ kubeconfig_location | default(omit) }}"
     username: "{{ openshift_user | default(omit) }}"
     password: "{{ openshift_password | default(omit) }}"
-    api_version: extensions.k8s.io/v1
+    api_version: apiextensions.k8s.io/v1
     kind: CustomResourceDefinition
-    name: appproject.argoprof.io/v1alpha1
+    name: appprojects.argoproj.io
   register: crds
   until: ( crds.resources | length ) > 0
   retries: 100
@@ -38,7 +38,7 @@
     password: "{{ openshift_password | default(omit) }}"
     apply: yes
     definition:
-      apiVersion: rbac.authorization.k8s.io
+      apiVersion: rbac.authorization.k8s.io/v1
       kind: ClusterRoleBinding
       metadata:
         name: awx-clusteradmin
