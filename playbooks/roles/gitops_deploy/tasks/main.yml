@@ -49,5 +49,5 @@
       subjects:
         - kind: ServiceAccount
           name: argocd-application-controller
-            namespace: openshift-gitops
+          namespace: openshift-gitops
     
