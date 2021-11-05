@@ -1,7 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  generation: 2
   labels:
     app: gitlab-ee
     app.kubernetes.io/component: gitlab-ee
@@ -22,14 +21,11 @@ spec:
     type: RollingUpdate
   template:
     metadata:
-      annotations:
-        openshift.io/generated-by: OpenShiftNewApp
-      creationTimestamp: null
       labels:
         deployment: gitlab-ee
     spec:
       containers:
-      - image: gitlab/gitlab-ee@sha256:005cc48dd558e319a261efaf4aae5b2cbdf1fe2503fd78239e2c5ccd83e2f7bc
+      - image: gitlab/gitlab-ee:latest
         imagePullPolicy: IfNotPresent
         name: gitlab-ee
         ports:
