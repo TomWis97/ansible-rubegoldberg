@@ -1,0 +1,20 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app: gitlab-ee
+    app.kubernetes.io/component: gitlab-ee
+    app.kubernetes.io/instance: gitlab-ee
+  name: gitlab
+spec:
+  host: gitlab.apps.ocp.int.tomwishaupt.nl
+  port:
+    targetPort: 80-tcp
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    kind: Service
+    name: gitlab-ee
+    weight: 100
+  wildcardPolicy: None
