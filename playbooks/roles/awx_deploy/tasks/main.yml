@@ -4,6 +4,7 @@
     kubeconfig: "{{ kubeconfig_location }}"
     wait: yes
     kind: Project
+    api_version: project.openshift.io/v1
     name: "{{ awx_namespace }}"
     state: absent
   when:

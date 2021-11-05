@@ -105,3 +105,60 @@
       bearer_token: "{{ item.resources[0].data.token | b64decode }}"
   when: "'resources' in item"
   loop: "{{ sa_token.results }}"
+
+- name: Create Vault credential
+  awx.awx.credential:
+    validate_certs: false
+    controller_host: "{{ awx_api }}"
+    controller_username: admin
+    controller_password: "{{ awx_admin_password }}"
+    organization: Default
+    credential_type: Vault
+    description: "Key for inventory Vault"
+    name: vault-key
+    inputs:
+      vault_password: "{{ lookup('file', './av_key') }}"
+
+- name: Create inventory
+  awx.awx.inventory:
+    validate_certs: false
+    controller_host: "{{ awx_api }}"
+    controller_username: admin
+    controller_password: "{{ awx_admin_password }}"
+    organization: Default
+    name: Ansible-RubeGoldberg
+    description: Inventory in this GitHub repo
+
+- name: Create inventory source
+  awx.awx.inventory_source:
+    validate_certs: false
+    controller_host: "{{ awx_api }}"
+    controller_username: admin
+    controller_password: "{{ awx_admin_password }}"
+    organization: Default
+    name: github-repo
+    description: From ansible-rubegoldberg project
+    source: scm
+    source_path: playbooks/inventory.yml
+    source_project: Ansible-RubeGoldberg
+    inventory: Ansible-RubeGoldberg
+    update_on_project_update: yes
+
+- name: Create GitOps Job Template
+  awx.awx.job_template:
+    validate_certs: false
+    controller_host: "{{ awx_api }}"
+    controller_username: admin
+    controller_password: "{{ awx_admin_password }}"
+    organization: Default
+    name: GitOps
+    description: Deploy and configure OpenShift GitOps
+    #TODO finish this
+    allow_simultaneous: no
+    credentials:
+      - awx-access
+      - vault-key
+    inventory: Ansible-RubeGoldberg
+    project: Ansible-RubeGoldberg
+    playbook: playbooks/playbook_gitops.yml
+    
