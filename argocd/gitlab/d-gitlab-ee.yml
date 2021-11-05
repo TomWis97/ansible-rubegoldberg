@@ -45,14 +45,14 @@ spec:
           name: gitlab-ee-volume-2
         - mountPath: /var/opt/gitlab
           name: gitlab-ee-volume-3
+        env:
+          - name: GITLAB_ROOT_PASSWORD
+            value: plschange
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
-      env:
-        - name: GITLAB_ROOT_PASSWORD
-          value: plschange
       volumes:
       - emptyDir: {}
         name: gitlab-ee-volume-1
