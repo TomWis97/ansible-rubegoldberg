@@ -18,25 +18,36 @@
         source: redhat-operators
         sourceNamespace: openshift-marketplace
 
-#TODO
-# - Wait for CRD
-# - Configure cluster-admin for ArgoCD (https://argocd-operator.readthedocs.io/en/latest/install/openshift/#rbac)
-# - Configure application in ArgoCD
-# - Configure GitLab
+- name: Wait for CRDs
+  k8s_info:
+    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+    username: "{{ openshift_user | default(omit) }}"
+    password: "{{ openshift_password | default(omit) }}"
+    api_version: extensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    name: appproject.argoprof.io/v1alpha1
+  register: crds
+  until: ( crds.resources | length ) > 0
+  retries: 100
+  delay: 5
 
-- name: Create ArgoCD GitLab project
+- name: Grant ArgoCD cluster-admin permissions
   kubernetes.core.k8s:
     kubeconfig: "{{ kubeconfig_location | default(omit) }}"
     username: "{{ openshift_user | default(omit) }}"
     password: "{{ openshift_password | default(omit) }}"
-    wait: yes
     apply: yes
-    namespace: openshift-gitops
     definition:
-      apiVersion: argoproj.io/v1alpha1
-      kind: AppProject
+      apiVersion: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
       metadata:
-        name: gitlab
-      spec:
-        description: Project for GitLab deployment
-
+        name: awx-clusteradmin
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: cluster-admin
+      subjects:
+        - kind: ServiceAccount
+        name: argocd-application-controller
+          namespace: openshift-gitops
+    

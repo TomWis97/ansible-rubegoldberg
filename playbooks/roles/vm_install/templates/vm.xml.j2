@@ -7,7 +7,7 @@
     </libosinfo:libosinfo>
   </metadata>
   <memory unit="KiB">{{ vm_memory_kib }}</memory>
-  <currentMemory unit="KiB">{{ vm_memory_kib }}</currentMemory>
+  <!--<currentMemory unit="MiB">512</currentMemory>-->
   <vcpu placement="static">{{ vm_cpus }}</vcpu>
   <os>
     <type arch="x86_64" machine="pc-q35-6.1">hvm</type>
@@ -128,6 +128,7 @@
     </video>
     <memballoon model="virtio">
       <address type="pci" domain="0x0000" bus="0x06" slot="0x00" function="0x0"/>
+      <stats period="5"/>
     </memballoon>
     <rng model="virtio">
       <backend model="random">/dev/urandom</backend>

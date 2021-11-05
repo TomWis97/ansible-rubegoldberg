@@ -3,3 +3,4 @@ collections:
 - name: community.libvirt
 - name: community.general
 - name: kubernetes.core
+- name: awx.awx

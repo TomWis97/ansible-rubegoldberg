@@ -1,0 +1,11 @@
+---
+- hosts: localhost
+  vars:
+    kubeconfig_location: /tmp/ocp.int.tomwishaupt.nl/cluster/auth/kubeconfig
+    ocp_clustername: ocp
+    awx_admin_password: admin
+    awx_namespace: awx
+  roles:
+    - awx_deploy
+    - awx_configure
+

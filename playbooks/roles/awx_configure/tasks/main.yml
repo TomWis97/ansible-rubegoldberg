@@ -1,33 +1,44 @@
 ---
-- name: Configure Project
-  uri:
-    url: "{{ awx_api }}/api/v2/projects/"
-    method: POST
-    user: admin
-    password: "{{ awx_admin_password }}"
-    force_basic_auth: yes
-    body_format: json
-    status_code:
-      - 200
-      - 201
-    body:
-      name: Ansible-RubeGoldberg
-      description: TomWis97's Ansible-RubeGoldberg repository
-      local_path: ''
-      scm_type: git
-      scm_url: https://github.com/TomWis97/ansible-rubegoldberg
-      scm_branch: ''
-      scm_refspec: ''
-      scm_clean: false
-      scm_track_submodules: false
-      scm_delete_on_update: false
-      credential:
-      timeout: 0
-      organization: 1
-      scm_update_on_launch: false
-      scm_update_cache_timeout: 0
-      allow_override: false
-      default_environment:
+- name: Create project
+  awx.awx.project:
+    validate_certs: false
+    controller_host: "{{ awx_api }}"
+    controller_username: admin
+    controller_password: "{{ awx_admin_password }}"
+    organization: Default
+    name: Ansible-RubeGoldberg
+    scm_url: https://github.com/TomWis97/ansible-rubegoldberg
+    scm_type: git
+
+    #- name: Configure Project
+    #  uri:
+    #    url: "{{ awx_api }}/api/v2/projects/"
+    #    method: POST
+    #    user: admin
+    #    password: "{{ awx_admin_password }}"
+    #    force_basic_auth: yes
+    #    body_format: json
+    #    status_code:
+    #      - 200
+    #      - 201
+    #    body:
+    #      name: Ansible-RubeGoldberg
+    #      description: TomWis97's Ansible-RubeGoldberg repository
+    #      local_path: ''
+    #      scm_type: git
+    #      scm_url: https://github.com/TomWis97/ansible-rubegoldberg
+    #      scm_branch: ''
+    #      scm_refspec: ''
+    #      scm_clean: false
+    #      scm_track_submodules: false
+    #      scm_delete_on_update: false
+    #      credential:
+    #      timeout: 0
+    #      organization: 1
+    #      scm_update_on_launch: false
+    #      scm_update_cache_timeout: 0
+    #      allow_override: false
+    #      default_environment:
 
 - name: Create serviceaccount for AWX
   kubernetes.core.k8s:
@@ -56,7 +67,7 @@
       subjects:
         - kind: ServiceAccount
           name: awx-access
-          namespace: awx
+          namespace: "{{ awx_namespace }}"
 
 - name: Grab name of Secret of SA
   kubernetes.core.k8s_info:
@@ -79,25 +90,18 @@
   register: sa_token
 
 - name: Create AWX Credential for SA
-  uri:
-    url: "{{ awx_api }}/api/v2/credentials/"
-    method: POST
-    user: admin
-    password: "{{ awx_admin_password }}"
-    force_basic_auth: yes
-    body_format: json
-    status_code:
-      - 200
-      - 201
-    body:
-      description: "Token for AWX"
-      name: "awx-access"
-      organization: 1
-      #credential_type: "OpenShift or Kubernetes API Bearer Token"
-      credential_type: 16
-      inputs:
-        host: "https://kubernetes.default.svc.cluster.local"
-        verify_ssl: false
-        bearer_token: "{{ item.resources[0].data.token | b64decode }}"
+  awx.awx.credential:
+    validate_certs: false
+    controller_host: "{{ awx_api }}"
+    controller_username: admin
+    controller_password: "{{ awx_admin_password }}"
+    organization: Default
+    credential_type: OpenShift or Kubernetes API Bearer Token
+    description: "Token for AWX"
+    name: awx-access
+    inputs:
+      host: "https://kubernetes.default.svc.cluster.local"
+      verify_ssl: false
+      bearer_token: "{{ item.resources[0].data.token | b64decode }}"
   when: "'resources' in item"
   loop: "{{ sa_token.results }}"

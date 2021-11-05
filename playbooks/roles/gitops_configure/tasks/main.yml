@@ -1,0 +1,20 @@
+---
+- name: Create ArgoCD GitLab project
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+    username: "{{ openshift_user | default(omit) }}"
+    password: "{{ openshift_password | default(omit) }}"
+    wait: yes
+    apply: yes
+    namespace: openshift-gitops
+    definition:
+      apiVersion: argoproj.io/v1alpha1
+      kind: AppProject
+      metadata:
+        name: gitlab
+      spec:
+        description: Project for GitLab deployment
+
+#TODO
+# - Configure application in ArgoCD
+# - Configure GitLab
