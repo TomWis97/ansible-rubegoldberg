@@ -1,2 +1,6 @@
 ungrouped:
-  hosts: localhost
+  hosts:
+    localhost:
+      ansible_connection: local
+
+
