@@ -18,7 +18,7 @@
         source: redhat-operators
         sourceNamespace: openshift-marketplace
 
-- name: Wait for CRDs
+- name: Wait for CRD
   kubernetes.core.k8s_info:
     kubeconfig: "{{ kubeconfig_location | default(omit) }}"
     username: "{{ openshift_user | default(omit) }}"
@@ -28,6 +28,19 @@
     name: appprojects.argoproj.io
   register: crds
   until: ( crds.resources | length ) > 0
+  retries: 100
+  delay: 5
+
+- name: Wait for namespace
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+    username: "{{ openshift_user | default(omit) }}"
+    password: "{{ openshift_password | default(omit) }}"
+    api_version: v1
+    kind: Namespace
+    name: openshift-gitops
+  register: ns
+  until: ( ns.resources | length ) > 0
   retries: 100
   delay: 5
 
