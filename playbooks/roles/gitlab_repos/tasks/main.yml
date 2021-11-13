@@ -1,0 +1,5 @@
+---
+- name: Deploy repos
+  include_tasks: repo.yml
+  loop:
+    - demo-app

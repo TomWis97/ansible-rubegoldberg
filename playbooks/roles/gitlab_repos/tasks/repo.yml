@@ -1,0 +1,75 @@
+---
+- block:
+    - name: Create temp directory for repo
+      tempfile:
+        state: directory
+        suffix: tmprepo
+      register: tmpdir
+
+    # I'm really sorry for those command modules. But ansible.builtin.git doesn't do what I need it to...
+    - name: Clone repository
+      command:
+        argv:
+          - git
+          - clone
+          - "https://root:plschange@gitlab.apps.{{ ocp_clustername }}.{{ ocp_basedomain }}/ansible-rubegoldberg/{{ item }}.git"
+          - "{{ tmpdir.path }}"
+      environment:
+        - GIT_SSL_NO_VERIFY: "true"
+
+    - name: Copy files over
+      copy:
+        dest: "{{ tmpdir.path }}"
+        src: "{{ item }}/"
+      register: copy_state
+
+    - name: Get changed files
+      command:
+        chdir: "{{ tmpdir.path }}"
+        argv:
+          - git
+          - diff
+          - --name-only
+      register: git_diff
+
+    - name: Determine if commit and push is required
+      set_fact:
+        commit_required: "{% if git_diff.stdout == 'devfile-sample-python-basic' %}{{ false | bool }}{% else %}{{ true | bool }}{% endif %}"
+
+    - name: Stage files
+      command:
+        chdir: "{{ tmpdir.path }}"
+        argv:
+          - git
+          - add
+          - --all
+      when: commit_required == true
+
+    - name: Commit new files
+      command:
+        chdir: "{{ tmpdir.path }}"
+        argv:
+          - git
+          - commit
+          - -m
+          - "Useless commitmessage."
+      when: commit_required == true
+
+    - name: Push files
+      command:
+        chdir: "{{ tmpdir.path }}"
+        argv:
+          - git
+          - push
+          - origin
+          - main
+      when: commit_required == true
+      environment:
+        - GIT_SSL_NO_VERIFY: "true"
+
+  always:
+    - name: Clean up tempdir
+      file:
+        path: "{{ tmpdir.path }}"
+        state: absent
+    

@@ -2,3 +2,4 @@
 - hosts: localhost
   roles:
     - gitlab_configure
+    - gitlab_repos
