@@ -1,0 +1,71 @@
+---
+- name: Wait for GitLab to become ready and get an access token
+  uri:
+    url: "https://gitlab.apps.{{ ocp_clustername }}.{{ ocp_basedomain }}/oauth/token"
+    body: "grant_type=password&username=root&password=plschange"
+    validate_certs: false
+    method: POST
+    return_content: true
+  register: token_raw
+  retries: 90
+  delay: 10
+
+- name: Set token variable
+  set_fact:
+    gitlab_token: "{{ token_raw.content | from_json | json_query('access_token') }}"
+
+- name: Create group
+  uri:
+    url: "https://gitlab.apps.{{ ocp_clustername }}.{{ ocp_basedomain }}/api/v4/groups"
+    headers:
+      Authorization: "Bearer {{ gitlab_token }}"
+    validate_certs: false
+    method: POST
+    body_format: json
+    return_content: true
+    body:
+      name: Ansible-RubeGoldberg
+      path: ansible-rubegoldberg
+    status_code:
+      - 200
+      - 201
+  register: created_group
+  changed_when: created_group.status == 201
+  failed_when: 
+    - created_group.status != 201
+    - "not 'has already been taken' in created_group.json.message"
+
+- name: Get ID of group
+  uri:
+    url: "https://gitlab.apps.{{ ocp_clustername }}.{{ ocp_basedomain }}/api/v4/groups/ansible-rubegoldberg"
+    headers:
+      Authorization: "Bearer {{ gitlab_token }}"
+    validate_certs: false
+    method: get
+    body_format: json
+    return_content: true
+  register: group_details
+
+- name: Create projects
+  uri:
+    url: "https://gitlab.apps.{{ ocp_clustername }}.{{ ocp_basedomain }}/api/v4/projects"
+    headers:
+      Authorization: "Bearer {{ gitlab_token }}"
+    validate_certs: false
+    method: POST
+    body_format: json
+    return_content: true
+    body:
+      name: "{{ item }}"
+      namespace_id: "{{ group_details.json.id }}"
+    status_code:
+      - 200
+      - 201
+  changed_when: created_group.status == 201
+  failed_when: 
+    - created_group.status != 201
+    - "not 'has already been taken' in created_group.json.message"
+  loop:
+    - pipeline
+    - demo-app
+

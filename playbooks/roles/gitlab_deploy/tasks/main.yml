@@ -1,0 +1,83 @@
+---
+- name: Get latest GitLab Operator release version
+  uri:
+    url: https://gitlab.com/api/v4/projects/gitlab-org%2Fcloud-native%2Fgitlab-operator/releases
+    return_content: true
+  register: gitlaboperator_releases
+  when: gitlab_operator_version is not defined
+
+- name: Extract GitLab Operator version
+  set_fact:
+    gitlab_operator_version: "{{ gitlaboperator_releases.content | from_json | json_query('[0].tag_name') }}"
+  when: gitlab_operator_version is not defined
+
+- name: Download GitLab Operator definition
+  uri:
+    url: "https://gitlab.com/api/v4/projects/18899486/packages/generic/gitlab-operator/{{ gitlab_operator_version }}/gitlab-operator-kubernetes-{{ gitlab_operator_version }}.yaml"
+    return_content: true
+  register: gitlab_operator_definition
+
+  #- name: Return latest release
+  #  debug:
+  #    msg: "Discovered GitLab operator release: {{ gitlab_operator_version }}"
+  #  tags:
+  #    - never
+  #    - debug
+  #
+
+- name: Get cert-manager for GitLab
+  uri:
+    url: https://github.com/jetstack/cert-manager/releases/download/v1.6.0/cert-manager.yaml
+    return_content: true
+  register: cert_manager_definition
+
+- name: Create GitLab namespace
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+    username: "{{ openshift_user | default(omit) }}"
+    password: "{{ openshift_password | default(omit) }}"
+    wait: yes
+    name: "{{ gitlab_namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+ 
+- name: Install cert-manager
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+    username: "{{ openshift_user | default(omit) }}"
+    password: "{{ openshift_password | default(omit) }}"
+    apply: yes
+    wait: yes
+    name: "{{ gitlab_namespace }}"
+    definition: "{{ cert_manager_definition.content }}"
+
+- name: Apply GitLab operator
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+    username: "{{ openshift_user | default(omit) }}"
+    password: "{{ openshift_password | default(omit) }}"
+    apply: yes
+    wait: yes
+    namespace: "{{ gitlab_namespace }}"
+    definition: "{{ gitlab_operator_definition.content | replace('apiextensions.k8s.io/v1beta1', 'apiextensions.k8s.io/v1') | replace('rbac.authorization.k8s.io/v1beta1', 'rbac.authorization.k8s.io/v1') | replace('cert-manager.io/v1alpha2', 'cert-manager.io/v1') | replace('admissionregistration.k8s.io/v1beta1', 'admissionregistration.k8s.io/v1') }}"
+
+- name: Get GitLab Chart versions
+  uri:
+    url: https://gitlab.com/gitlab-org/cloud-native/gitlab-operator/-/raw/master/CHART_VERSIONS
+    return_content: yes
+  register: gitlab_chart_versions
+
+- name: Extract most recent chart version
+  set_fact:
+    gitlab_chart_version: "{{ gitlab_chart_versions.content.split('\n')[0] }}"
+
+- name: Apply GitLab Custom Resource
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+    username: "{{ openshift_user | default(omit) }}"
+    password: "{{ openshift_password | default(omit) }}"
+    apply: yes
+    wait: yes
+    namespace: "{{ gitlab_namespace }}"
+    definition: "{{ lookup('template', 'gitlab.yml.j2') | from_yaml }}"

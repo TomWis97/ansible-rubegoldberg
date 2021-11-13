@@ -90,6 +90,7 @@
   register: sa_token
 
 - name: Create AWX Credential for SA
+  no_log: true
   awx.awx.credential:
     validate_certs: false
     controller_host: "{{ awx_api }}"
@@ -153,7 +154,6 @@
     organization: Default
     name: GitOps
     description: Deploy and configure OpenShift GitOps
-    #TODO finish this
     allow_simultaneous: no
     credentials:
       - awx-access
@@ -162,3 +162,78 @@
     project: Ansible-RubeGoldberg
     playbook: playbooks/playbook_gitops.yml
     
+- name: Create GitLab Job Template
+  awx.awx.job_template:
+    validate_certs: false
+    controller_host: "{{ awx_api }}"
+    controller_username: admin
+    controller_password: "{{ awx_admin_password }}"
+    organization: Default
+    name: GitLab
+    description: Configure GitLab
+    allow_simultaneous: no
+    credentials:
+      - awx-access
+      - vault-key
+    inventory: Ansible-RubeGoldberg
+    project: Ansible-RubeGoldberg
+    playbook: playbooks/playbook_gitlab.yml
+    
+- name: Create Workflow Template
+  awx.awx.workflow_job_template:
+    validate_certs: false
+    controller_host: "{{ awx_api }}"
+    controller_username: admin
+    controller_password: "{{ awx_admin_password }}"
+    organization: Default
+    name: Run Ansible-RubeGoldberg
+    schema:
+      - unified_job_template:
+          name: "Ansible-RubeGoldberg"
+          type: project_update
+          organization:
+            name: Default
+        identifier: Update project
+        related:
+          success_nodes:
+            - identifier: "1 GitOps"
+          failure_nodes: []
+          always_nodes: []
+          credentials: []
+      - unified_job_template:
+          name: GitOps
+          description: "Deploy and configure OpenShift GitOps"
+          type: job
+          organization:
+            name: Default
+        identifier: "1 GitOps"
+        related:
+          success_nodes:
+            - identifier: "2 GitLab"
+          failure_nodes: []
+          always_nodes: []
+          credentials: []
+      - unified_job_template:
+          name: GitLab
+          description: "Configure GitLab"
+          type: job
+          organization:
+            name: Default
+        identifier: "2 GitLab"
+        related:
+          success_nodes: []
+          failure_nodes: []
+          always_nodes: []
+          credentials: []
+
+- name: Start Workflow Template
+  awx.awx.workflow_launch:
+    validate_certs: false
+    controller_host: "{{ awx_api }}"
+    controller_username: admin
+    controller_password: "{{ awx_admin_password }}"
+    organization: Default
+    workflow_template: "Run Ansible-RubeGoldberg"
+    wait: True
+
+
