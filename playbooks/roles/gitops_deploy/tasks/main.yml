@@ -64,3 +64,21 @@
           name: openshift-gitops-argocd-application-controller
           namespace: openshift-gitops
     
+- name: Create Subscription for openshift-pipelines-operator-rh
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+    username: "{{ openshift_user | default(omit) }}"
+    password: "{{ openshift_password | default(omit) }}"
+    wait: yes
+    apply: yes
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: Subscription
+      metadata:
+        name: openshift-pipelines-operator-rh
+        namespace: openshift-operators
+      spec:
+        channel: stable
+        name: openshift-pipelines-operator-rh
+        source: redhat-operators
+        sourceNamespace: openshift-marketplace
