@@ -179,6 +179,23 @@
     project: Ansible-RubeGoldberg
     playbook: playbooks/playbook_gitlab.yml
     
+- name: Create OpenShift Configure Job Template
+  awx.awx.job_template:
+    validate_certs: false
+    controller_host: "{{ awx_api }}"
+    controller_username: admin
+    controller_password: "{{ awx_admin_password }}"
+    organization: Default
+    name: OpenShift
+    description: Configure OpenShift
+    allow_simultaneous: no
+    credentials:
+      - awx-access
+      - vault-key
+    inventory: Ansible-RubeGoldberg
+    project: Ansible-RubeGoldberg
+    playbook: playbooks/playbook_openshift.yml
+
 - name: Create Workflow Template
   awx.awx.workflow_job_template:
     validate_certs: false
@@ -196,7 +213,20 @@
         identifier: Update project
         related:
           success_nodes:
-            - identifier: "1 GitOps"
+            - identifier: "1 OpenShift"
+          failure_nodes: []
+          always_nodes: []
+          credentials: []
+      - unified_job_template:
+          name: OpenShift
+          description: "Configure OpenShift"
+          type: job
+          organization:
+            name: Default
+        identifier: "1 OpenShift"
+        related:
+          success_nodes:
+            - identifier: "2 GitOps"
           failure_nodes: []
           always_nodes: []
           credentials: []
@@ -206,10 +236,10 @@
           type: job
           organization:
             name: Default
-        identifier: "1 GitOps"
+        identifier: "2 GitOps"
         related:
           success_nodes:
-            - identifier: "2 GitLab"
+            - identifier: "3 GitLab"
           failure_nodes: []
           always_nodes: []
           credentials: []
@@ -219,7 +249,7 @@
           type: job
           organization:
             name: Default
-        identifier: "2 GitLab"
+        identifier: "3 GitLab"
         related:
           success_nodes: []
           failure_nodes: []

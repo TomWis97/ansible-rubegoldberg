@@ -1,0 +1,5 @@
+---
+- hosts: localhost
+  name: Configure OpenShift
+  roles:
+    - ocp_configure
