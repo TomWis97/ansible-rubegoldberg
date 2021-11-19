@@ -1,0 +1,6 @@
+---
+- hosts: localhost
+  vars:
+    kubeconfig_location: /tmp/ocp.int.tomwishaupt.nl/cluster/auth/kubeconfig
+  roles:
+    - localstorage_deploy

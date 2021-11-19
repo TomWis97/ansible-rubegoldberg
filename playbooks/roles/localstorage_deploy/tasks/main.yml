@@ -1,0 +1,134 @@
+---
+- name: Create namespace for local storage
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+    username: "{{ openshift_user | default(omit) }}"
+    password: "{{ openshift_password | default(omit) }}"
+    wait: yes
+    apply: yes
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: openshift-local-storage
+        annotations:
+          openshift.io/node-selector: ""
+
+- name: Create Subscription for local-storage-operator
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+    username: "{{ openshift_user | default(omit) }}"
+    password: "{{ openshift_password | default(omit) }}"
+    wait: yes
+    apply: yes
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: Subscription
+      metadata:
+        name: local-storage-operator
+        namespace: openshift-local-storage
+        labels:
+          operators.coreos.com/local-storage-operator.openshift-local-storage: ""
+      spec:
+        channel: stable
+        installPlanApproval: Automatic
+        name: local-storage-operator
+        source: redhat-operators
+        sourceNamespace: openshift-marketplace
+
+- name: Create Subscription for local-storage-operator
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+    username: "{{ openshift_user | default(omit) }}"
+    password: "{{ openshift_password | default(omit) }}"
+    wait: yes
+    apply: yes
+    definition:
+      apiVersion: operators.coreos.com/v1alpha2
+      kind: OperatorGroup
+      metadata:
+        name: local-operator-group
+        namespace: openshift-local-storage
+      spec:
+        targetNamespaces:
+          - openshift-local-storage
+
+- name: Wait for Local Storage CRDs
+  k8s_info:
+    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+    username: "{{ openshift_user | default(omit) }}"
+    password: "{{ openshift_password | default(omit) }}"
+    api_version: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    name: "{{ item }}"
+  register: crd
+  until: ( crd.resources | length ) > 0
+  retries: 100
+  loop:
+  - localvolumes.local.storage.openshift.io
+  - localvolumediscoveries.local.storage.openshift.io
+
+- name: Create LocalVolumeDiscovery
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+    username: "{{ openshift_user | default(omit) }}"
+    password: "{{ openshift_password | default(omit) }}"
+    wait: yes
+    apply: yes
+    definition:
+      apiVersion: local.storage.openshift.io/v1alpha1
+      kind: LocalVolumeDiscovery
+      metadata:
+        name: auto-discover-devices
+        namespace: openshift-local-storage
+      spec:
+        nodeSelector:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+              - localhost
+
+- name: Create StorageClass for volume
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+    username: "{{ openshift_user | default(omit) }}"
+    password: "{{ openshift_password | default(omit) }}"
+    wait: yes
+    apply: yes
+    definition:
+      apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        labels:
+          local.storage.openshift.io/owner-name: "{{ item.key }}"
+          local.storage.openshift.io/owner-namespace: openshift-local-storage
+        name: "{{ item.key }}"
+      provisioner: kubernetes.io/no-provisioner
+      reclaimPolicy: Delete
+      volumeBindingMode: Immediate
+  loop: "{{ pvs | dict2items }}"
+- name: Create Volumes
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+    username: "{{ openshift_user | default(omit) }}"
+    password: "{{ openshift_password | default(omit) }}"
+    wait: yes
+    apply: yes
+    definition:
+      apiVersion: local.storage.openshift.io/v1
+      kind: LocalVolume
+      metadata:
+        name: "{{ item.key }}"
+        namespace: openshift-local-storage
+      spec:
+        logLevel: Normal
+        managementState: Managed
+        storageClassDevices:
+        - devicePaths:
+          - "/dev/{{ item.value.dev }}"
+          fsType: xfs
+          storageClassName: "{{ item.key }}"
+          volumeMode: Filesystem
+  loop: "{{ pvs | dict2items }}"
