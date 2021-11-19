@@ -23,6 +23,21 @@
         src: "{{ item }}/"
       register: copy_state
 
+    - name: Configure Git name and e-mail
+      command:
+        chdir: "{{ tmpdir.path }}"
+        argv:
+          - git
+          - config
+          - "--local"
+          - "{{ item.field }}"
+          - "{{ item.value }}"
+      loop:
+        - field: user.email
+          value: someuser@localhost.local
+        - field: user.name
+          value: Fancy Ansible Playbook
+
     - name: Get changed files
       command:
         chdir: "{{ tmpdir.path }}"
