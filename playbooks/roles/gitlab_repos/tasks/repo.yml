@@ -76,6 +76,7 @@
         argv:
           - git
           - push
+          - -u
           - origin
           - main
       when: commit_required == true
