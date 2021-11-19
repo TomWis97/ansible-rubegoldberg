@@ -51,6 +51,15 @@
       set_fact:
         commit_required: "{% if git_diff.stdout == 'devfile-sample-python-basic' %}{{ false | bool }}{% else %}{{ true | bool }}{% endif %}"
 
+    - name: Set branch
+      command:
+        chdir: "{{ tmpdir.path }}"
+        argv:
+          - git
+          - switch
+          - "-c"
+          - main
+
     - name: Stage files
       command:
         chdir: "{{ tmpdir.path }}"
