@@ -9,6 +9,10 @@
     name: Ansible-RubeGoldberg
     scm_url: https://github.com/TomWis97/ansible-rubegoldberg
     scm_type: git
+  register: create_project_status
+  retries: 5
+  delay: 30
+  until: create_project_status is not failed
 
     #- name: Configure Project
     #  uri:
@@ -265,5 +269,9 @@
     organization: Default
     workflow_template: "Run Ansible-RubeGoldberg"
     wait: True
+  register: start_workflow_template_status
+  retries: 3
+  delay: 120
+  until: start_workflow_template_status is not failed
 
 

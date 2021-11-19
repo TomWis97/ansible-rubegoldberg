@@ -9,6 +9,7 @@
   register: token_raw
   retries: 90
   delay: 10
+  until: token_raw is not failed
 
 - name: Set token variable
   set_fact:
