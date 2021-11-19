@@ -15,10 +15,11 @@
         name: '{{ ocp_clustername }}.{{ ocp_basedomain }}'
         command: undefine
       when: 'ocp_clustername + "." + ocp_basedomain in vms.list_vms'
-    - name: Delete VM's disk if exists
+    - name: Delete VM's disks if exists
       file:
-        path: "{{ vm_disk_location }}"
+        path: "{{ vm_disk_location }}-{{ item }}.qcow2"
         state: absent
+      loop: "{{ pvs | list + ['os'] }}"
     - name: Delete install ISO
       become: true
       file:
@@ -27,5 +28,6 @@
   roles:
     - ocp_prep
     - vm_install
+    - localstorage_deploy
     - awx_deploy
     - awx_configure

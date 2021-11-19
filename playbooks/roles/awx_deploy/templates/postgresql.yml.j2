@@ -1,6 +1,19 @@
 apiVersion: v1
 items:
 - apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: {{ awx_pg_service }}-claim
+    namespace: {{ awx_namespace }}
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: {{ pvs['awx-postgres']['size_gb'] }}Gi
+    storageClassName: awx-postgres
+    volumeMode: Filesystem
+- apiVersion: v1
   kind: Secret
   metadata:
     annotations:
@@ -107,9 +120,12 @@ items:
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         volumes:
-        - emptyDir:
-            medium: ""
+        - persistentVolumeClaim:
+            claimName: {{ awx_pg_service }}-claim
           name: {{ awx_pg_service }}-data
+        #- emptyDir:
+        #    medium: ""
+        #  name: {{ awx_pg_service }}-data
     triggers:
     - imageChangeParams:
         automatic: true

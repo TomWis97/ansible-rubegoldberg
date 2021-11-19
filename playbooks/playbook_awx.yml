@@ -6,6 +6,7 @@
     awx_admin_password: admin
     awx_namespace: awx
   roles:
+    - localstorage_deploy
     - awx_deploy
     - awx_configure
 

@@ -1,8 +1,13 @@
 ---
 - name: Create disk image
   command:
-    cmd: 'qemu-img create -f qcow2 "{{ vm_disk_location }}" {{ vm_disk_size }}'
-    creates: '{{ vm_disk_location }}'
+    cmd: 'qemu-img create -f qcow2 "{{ vm_disk_location }}-os.qcow2" {{ vm_disk_size }}'
+    creates: '{{ vm_disk_location }}-os.qcow2'
+- name: Create disk images for PVs
+  command:
+    cmd: 'qemu-img create -f qcow2 "{{ vm_disk_location }}-{{ item.key }}.qcow2" {{ item.value.size_gb }}G'
+    creates: '{{ vm_disk_location }}-{{ item.key }}.qcow2'
+  loop: "{{ pvs | dict2items }}"
 - name: Create virtual machine
   community.libvirt.virt:
     command: define

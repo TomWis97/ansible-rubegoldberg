@@ -35,3 +35,11 @@ items:
     admin_user: admin
     admin_email: root@{{ ocp_clustername }}.{{ ocp_basedomain }}
     admin_password_secret: awx-password
+{% if 'awx-projects' in ( pvs | list ) %}
+    projects_persistence: true
+    projects_storage_access_mode: ReadWriteOnce
+    projects_storage_class: awx-projects
+    projects_storage_size: {{ pvs['awx-projects']['size_gb'] }}Gi
+{% else %}
+    projects_persistence: false
+{% endif %}

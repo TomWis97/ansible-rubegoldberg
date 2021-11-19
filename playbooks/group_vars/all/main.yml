@@ -3,7 +3,7 @@ ocp_basedomain: int.tomwishaupt.nl
 ocp_clustername: ocp
 ocp_machinenetwork: '10.20.10.0/24'
 ocp_sshkey: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCtGxssVdwjZmHSqe5KJcyDvR2gxnr8QGGOD8wbffFVm0vEZQ5ctOMLuNBL1QWiCRX3lfM0vVrCsLIaz2c6pIhxWEG7yVAJlmzO2knxjMVrpwtQRUrjs7UI/24P0rXl3Ut/F576UvSc3CnVU6pPnTrMOXIoOS+CKJyxcN56rOIEtjsvD550GDlVsUjDLJI3t3UglO4BKv5os0z4hY9pTy60sz4xa4LA4N9fsNKC/p13Ame6LhrMSJSVexCd94pbaK4z1M8UQVAxV9B/GD2Rrx+/lcb2q9tBbSlLjpv4c52RjzjsTVUOkwLX9m/md/E9UnHbpULy3xlvViPiF6ddJC7I2oDUAb/hvhL2Ex+sBASngXJ1VSf04yKlfcdeN8HLjB77dt7sLZEsZwR426D4YYEkRULAMfPxOReHhcnCAlYn2VcZJKphB7Ab9g15UiAQW26ztU5qNr6HZaoNJ+ygSYCnxi5RAvhqBzqhDEtaXtCy+hIxwr83oAh1y7Mo8gCV0HNXqEk6gksFRNf/BhEJKxkFTB4nE3MUBIlbWPAdv+RoMDXzWCr4lDGqVGtEICDKh4B5pSg9fvgbhVz2BYq41SFx4AeZLXMA7wk5e/LrM3qk3DtNtrnxhEcVFvVovQrymXVqA4uz8rklwsITjKh/IIzc+rkVV07UK1zh4PnYJwtkzw== Tom Wishaupt (Personal key)
-vm_disk_location: /mnt/ssd/TMP/libvirt/ocp-sno1.qcow2
+vm_disk_location: /mnt/ssd/TMP/libvirt/ocp-sno1
 vm_mac_address: 52:54:00:fd:0a:18
 awx_api: http://awx.apps.{{ ocp_clustername }}.{{ ocp_basedomain }}
 awx_namespace: awx
@@ -21,3 +21,16 @@ ocp_info_location: /tmp/{{ ocp_clustername }}.{{ ocp_basedomain }}
 vm_memory_kib: 30000000
 vm_cpus: 14
 vm_disk_size: 120G
+pvs:
+  awx-postgres:
+    size_gb: 5
+    dev: vdb
+  #awx-projects:
+  #  size_gb: 5
+  #  dev: vdc
+  gitlab-config:
+    size_gb: 2
+    dev: vdc
+  gitlab-data:
+    size_gb: 5
+    dev: vdd
