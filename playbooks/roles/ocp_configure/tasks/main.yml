@@ -51,7 +51,7 @@
           name: htpasswd-data
           namespace: openshift-config
         data:
-          htpasswd: "{{ openshift_htpasswd | b64encode }}"
+          htpasswd: "{{ ocp_htpasswd | b64encode }}"
   - name: Create htpasswd secret
     kubernetes.core.k8s:
       kubeconfig: "{{ kubeconfig_location | default(omit) }}"
