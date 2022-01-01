@@ -35,7 +35,7 @@
           hostname: "console.{{ ocp_clustername }}.{{ ocp_basedomain }}"
 
 - name: Configure htpasswd authentication
-  when: openshift_htpasswd is defined
+  when: ocp_htpasswd is defined
   block:
   - name: Create htpasswd secret
     kubernetes.core.k8s:
