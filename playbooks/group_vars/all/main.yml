@@ -22,15 +22,21 @@ vm_memory_kib: 30000000
 vm_cpus: 14
 vm_disk_size: 120G
 pvs:
+  ocp-registry:
+    size_gb: 10
+    dev: vdb
   awx-postgres:
     size_gb: 5
-    dev: vdb
+    dev: vdc
   #awx-projects:
   #  size_gb: 5
   #  dev: vdc
   gitlab-config:
     size_gb: 2
-    dev: vdc
+    dev: vdd
   gitlab-data:
     size_gb: 5
-    dev: vdd
+    dev: vde
+  pipeline-data:
+    size_gb: 5
+    dev: vdf

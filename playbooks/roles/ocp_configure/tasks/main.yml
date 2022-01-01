@@ -33,3 +33,63 @@
       spec:
         route:
           hostname: "console.{{ ocp_clustername }}.{{ ocp_basedomain }}"
+
+- name: Configure htpasswd authentication
+  when: openshift_htpasswd is defined
+  block:
+  - name: Create htpasswd secret
+    kubernetes.core.k8s:
+      kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+      username: "{{ openshift_user | default(omit) }}"
+      password: "{{ openshift_password | default(omit) }}"
+      wait: yes
+      apply: yes
+      definition:
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: htpasswd-data
+          namespace: openshift-config
+        data:
+          htpasswd: "{{ openshift_htpasswd | b64encode }}"
+  - name: Create htpasswd secret
+    kubernetes.core.k8s:
+      kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+      username: "{{ openshift_user | default(omit) }}"
+      password: "{{ openshift_password | default(omit) }}"
+      wait: yes
+      apply: yes
+      definition:
+        apiVersion: config.openshift.io/v1
+        kind: OAuth
+        metadata:
+          name: cluster
+        spec:
+          identityProviders:
+          - name: htpasswd
+            type: HTPasswd
+            mappingMethod: claim
+            htpasswd:
+              fileData:
+                name: htpasswd-data
+  - name: Grant cluster-admin permissions
+    kubernetes.core.k8s:
+      kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+      username: "{{ openshift_user | default(omit) }}"
+      password: "{{ openshift_password | default(omit) }}"
+      wait: yes
+      apply: yes
+      definition:
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: ClusterRoleBinding
+        metadata:
+          name: htpasswd-admin
+        roleRef:
+          apiGroup: rbac.authorization.k8s.io
+          kind: ClusterRole
+          name: cluster-admin
+        subjects:
+        - apiGroup: rbac.authorization.k8s.io
+          kind: User
+          name: admin
+
