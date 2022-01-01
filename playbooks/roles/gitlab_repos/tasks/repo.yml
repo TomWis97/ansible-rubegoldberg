@@ -52,6 +52,7 @@
         commit_required: "{% if git_diff.stdout == 'devfile-sample-python-basic' %}{{ false | bool }}{% else %}{{ true | bool }}{% endif %}"
 
     - name: Set branch
+      ignore_errors: true
       command:
         chdir: "{{ tmpdir.path }}"
         argv:
