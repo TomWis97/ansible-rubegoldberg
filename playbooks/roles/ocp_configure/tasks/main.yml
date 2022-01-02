@@ -19,7 +19,7 @@
         volumeMode: Filesystem
         resources:
           requests:
-            storage: "{{ pvs['ocp-registry']['size_gb'] }}"Gi
+            storage: "{{ pvs['ocp-registry']['size_gb'] }}Gi"
 
 - name: Configure image registry
   kubernetes.core.k8s:
