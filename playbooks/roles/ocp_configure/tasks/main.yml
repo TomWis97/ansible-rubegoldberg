@@ -1,4 +1,24 @@
 ---
+- name: Create image registry PVC
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+    username: "{{ openshift_user | default(omit) }}"
+    password: "{{ openshift_password | default(omit) }}"
+    wait: yes
+    apply: yes
+    definition:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: registry-storage
+        namespace: openshift-image-registry
+      spec:
+        storageClassName: ocp-registry
+        volumeMode: Filesystem
+        resources:
+          requests:
+            storage: "{{ pvs['ocp-registry']['size_gb'] }}"Gi
+
 - name: Configure image registry
   kubernetes.core.k8s:
     kubeconfig: "{{ kubeconfig_location | default(omit) }}"
@@ -16,7 +36,7 @@
         replicas: 1
         rolloutStrategy: Recreate
         storage:
-          emptyDir: {}
+          claim: registry-storage
 
             #- name: Configure custom console URL
             #  kubernetes.core.k8s:
