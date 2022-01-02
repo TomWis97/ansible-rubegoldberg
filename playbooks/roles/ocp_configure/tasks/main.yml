@@ -18,21 +18,21 @@
         storage:
           emptyDir: {}
 
-- name: Configure custom console URL
-  kubernetes.core.k8s:
-    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
-    username: "{{ openshift_user | default(omit) }}"
-    password: "{{ openshift_password | default(omit) }}"
-    wait: yes
-    apply: yes
-    definition:
-      apiVersion: operator.openshift.io/v1
-      kind: Console
-      metadata:
-        name: cluster
-      spec:
-        route:
-          hostname: "console.{{ ocp_clustername }}.{{ ocp_basedomain }}"
+            #- name: Configure custom console URL
+            #  kubernetes.core.k8s:
+            #    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+            #    username: "{{ openshift_user | default(omit) }}"
+            #    password: "{{ openshift_password | default(omit) }}"
+            #    wait: yes
+            #    apply: yes
+            #    definition:
+            #      apiVersion: operator.openshift.io/v1
+            #      kind: Console
+            #      metadata:
+            #        name: cluster
+            #      spec:
+            #        route:
+            #          hostname: "console.{{ ocp_clustername }}.{{ ocp_basedomain }}"
 
 - name: Configure htpasswd authentication
   when: ocp_htpasswd is defined
