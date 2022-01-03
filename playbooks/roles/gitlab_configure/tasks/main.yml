@@ -69,4 +69,5 @@
   loop:
     - pipeline
     - demo-app
+    - website
 
