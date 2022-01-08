@@ -38,7 +38,8 @@
         replicas: 1
         rolloutStrategy: Recreate
         storage:
-          claim: registry-storage
+          pvc:
+            claim: registry-storage
 
             #- name: Configure custom console URL
             #  kubernetes.core.k8s:
