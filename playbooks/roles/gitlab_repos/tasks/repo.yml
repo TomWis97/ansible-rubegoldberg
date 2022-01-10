@@ -1,4 +1,8 @@
 ---
+- name: Current repo
+  debug:
+    msg: "Currently processing repo: {{ item }}"
+
 - block:
     - name: Create temp directory for repo
       tempfile:
