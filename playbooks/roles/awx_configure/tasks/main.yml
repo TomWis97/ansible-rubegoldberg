@@ -199,6 +199,23 @@
     project: Ansible-RubeGoldberg
     playbook: playbooks/playbook_openshift.yml
 
+- name: Create Finish Job Template
+  awx.awx.job_template:
+    validate_certs: false
+    controller_host: "{{ awx_api }}"
+    controller_username: admin
+    controller_password: "{{ awx_admin_password }}"
+    organization: Default
+    name: Finish
+    description: Finish Ansible-RubeGoldberg
+    allow_simultaneous: no
+    credentials:
+      - awx-access
+      - vault-key
+    inventory: Ansible-RubeGoldberg
+    project: Ansible-RubeGoldberg
+    playbook: playbooks/playbook_finish.yml
+
 - name: Create Workflow Template
   awx.awx.workflow_job_template:
     validate_certs: false
@@ -253,6 +270,19 @@
           organization:
             name: Default
         identifier: "3 GitLab"
+        related:
+          success_nodes:
+            - identifier: "4 Finish"
+          failure_nodes: []
+          always_nodes: []
+          credentials: []
+      - unified_job_template:
+          name: Finish
+          description: "Finish Ansible-RubeGoldberg"
+          type: job
+          organization:
+            name: Default
+        identifier: "4 Finish"
         related:
           success_nodes: []
           failure_nodes: []

@@ -1,0 +1,32 @@
+---
+- hosts: localhost
+  tasks:
+  - name: Run pipeline
+    kubernetes.core.k8s:
+      kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+      username: "{{ openshift_user | default(omit) }}"
+      password: "{{ openshift_password | default(omit) }}"
+      wait: yes
+      apply: no
+      namespace: sphinx
+      definition:
+        apiVersion: tekton.dev/v1beta1
+        kind: PipelineRun
+        metadata:
+          labels:
+            tekton.dev/pipeline: sphinx-pipeline
+          generateName: sphinx-pipeline-run-
+        spec:
+          params:
+          - name: git-url
+            value: https://root:plschange@gitlab.apps.ocp.int.tomwishaupt.nl/ansible-rubegoldberg/website.git
+          - name: git-revision
+            value: master
+          pipelineRef:
+            name: sphinx-pipeline
+          serviceAccountName: pipeline
+          timeout: 1h0m0s
+          workspaces:
+          - name: data
+            persistentVolumeClaim:
+              claimName: pipeline-data
