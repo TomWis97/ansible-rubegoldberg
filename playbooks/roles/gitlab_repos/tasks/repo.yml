@@ -52,7 +52,7 @@
 
     - name: Determine if commit and push is required
       set_fact:
-        commit_required: "{% if git_diff.stdout == '' %}{{ true | bool }}{% else %}{{ false | bool }}{% endif %}"
+        commit_required: "{% if git_diff.stdout == '' %}{{ false | bool }}{% else %}{{ true | bool }}{% endif %}"
 
     - name: Set branch
       ignore_errors: true
