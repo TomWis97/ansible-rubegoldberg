@@ -9,5 +9,15 @@
     namespace: openshift-gitops
     definition: "{{ lookup('template', 'application-gitlab.yml.j2') | from_yaml }}"
 
+- name: Create ArgoCD pipeline application
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+    username: "{{ openshift_user | default(omit) }}"
+    password: "{{ openshift_password | default(omit) }}"
+    wait: yes
+    apply: yes
+    namespace: openshift-gitops
+    definition: "{{ lookup('template', 'application-pipeline.yml.j2') | from_yaml }}"
+
 #TODO
 # - Configure GitLab
