@@ -45,19 +45,6 @@
         - field: user.name
           value: Fancy Ansible Playbook
 
-    - name: Get changed files
-      command:
-        chdir: "{{ tmpdir.path }}"
-        argv:
-          - git
-          - diff
-          - --name-only
-      register: git_diff
-
-    - name: Determine if commit and push is required
-      set_fact:
-        commit_required: "{% if git_diff.stdout == '' %}{{ false | bool }}{% else %}{{ true | bool }}{% endif %}"
-
     - name: Set branch
       ignore_errors: true
       command:
@@ -69,7 +56,7 @@
           - main
 
     - name: Commit changes in git
-      when: commit_required == true
+      when: copy_state.changed == True
       block:
       - name: Stage files
         command:
