@@ -1,0 +1,23 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: sphinx-gitclone
+spec:
+  params:
+    - name: inputdir
+      description: Input directory
+      type: string
+    - name: outputdir
+      description: Output directory
+      type: string
+  workspaces:
+    - name: data
+      description: Pipeline data containing html files
+  steps:
+    - name: render-html
+      image: sphinxdoc/sphinx
+      script: |
+        #!/bin/bash
+        set -xe
+        pip3 install -r $(params.inputdir)/requirements.txt
+        sphinx-build $(params.inputdir)/source $(params.outputdir)

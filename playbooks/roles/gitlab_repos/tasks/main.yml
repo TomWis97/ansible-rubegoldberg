@@ -4,3 +4,4 @@
   loop:
     - demo-app
     - website
+    - pipeline

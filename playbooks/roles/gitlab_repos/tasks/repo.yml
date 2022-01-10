@@ -30,8 +30,11 @@
           - git
           - config
           - "--local"
-          - "{{ item.field }}"
-          - "{{ item.value }}"
+          - "{{ setting.field }}"
+          - "{{ setting.value }}"
+      loop_control:
+        label: "{{ setting.field }}"
+        loop_var: setting
       loop:
         - field: user.email
           value: someuser@localhost.local
@@ -49,7 +52,7 @@
 
     - name: Determine if commit and push is required
       set_fact:
-        commit_required: "{% if git_diff.stdout == 'devfile-sample-python-basic' %}{{ false | bool }}{% else %}{{ true | bool }}{% endif %}"
+        commit_required: "{% if git_diff.stdout == '' %}{{ true | bool }}{% else %}{{ false | bool }}{% endif %}"
 
     - name: Set branch
       ignore_errors: true
@@ -61,37 +64,37 @@
           - "-c"
           - main
 
-    - name: Stage files
-      command:
-        chdir: "{{ tmpdir.path }}"
-        argv:
-          - git
-          - add
-          - --all
+    - name: Commit changes in git
       when: commit_required == true
+      block:
+      - name: Stage files
+        command:
+          chdir: "{{ tmpdir.path }}"
+          argv:
+            - git
+            - add
+            - --all
 
-    - name: Commit new files
-      command:
-        chdir: "{{ tmpdir.path }}"
-        argv:
-          - git
-          - commit
-          - -m
-          - "Useless commitmessage."
-      when: commit_required == true
+      - name: Commit new files
+        command:
+          chdir: "{{ tmpdir.path }}"
+          argv:
+            - git
+            - commit
+            - -m
+            - "Useless commitmessage."
 
-    - name: Push files
-      command:
-        chdir: "{{ tmpdir.path }}"
-        argv:
-          - git
-          - push
-          - -u
-          - origin
-          - main
-      when: commit_required == true
-      environment:
-        - GIT_SSL_NO_VERIFY: "true"
+      - name: Push files
+        command:
+          chdir: "{{ tmpdir.path }}"
+          argv:
+            - git
+            - push
+            - -u
+            - origin
+            - main
+        environment:
+          - GIT_SSL_NO_VERIFY: "true"
 
   always:
     - name: Clean up tempdir
