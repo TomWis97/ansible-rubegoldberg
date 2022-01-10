@@ -30,7 +30,7 @@ items:
           deployment: website
       spec:
         containers:
-        - image: image-registry.openshift-image-registry.svc:5000/sphinx/website@sha256:f745059ac0796a368798e0d779200e03802b5af6ae915590d4b9456719a0ad9d
+        - image: image-registry.openshift-image-registry.svc:5000/sphinx/website:latest
           imagePullPolicy: IfNotPresent
           name: website
           ports:
