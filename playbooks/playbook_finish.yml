@@ -31,3 +31,11 @@
           - name: data
             persistentVolumeClaim:
               claimName: pipeline-data
+  - name: Wait for website to be online
+    uri:
+      url: "http://sphinx.apps.{{ ocp_clustername }}.{{ ocp_basedomain }}"
+    register: website_status
+    retries: 60
+    delay: 10
+    until: website_status == 200
+    
