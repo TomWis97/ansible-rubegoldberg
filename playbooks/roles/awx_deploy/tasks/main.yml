@@ -89,7 +89,7 @@
     retries: 60
     delay: 10
     until: awx_status.status == 200
-  rescure:
+  rescue:
   - name: Remove AWX pod
     kubernetes.core.k8s:
       kubeconfig: "{{ kubeconfig_location }}"
