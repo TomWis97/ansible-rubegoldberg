@@ -1,32 +1,38 @@
 ---
 - hosts: localhost
   pre_tasks:
-    - name: Get VMs
-      community.libvirt.virt:
-        command: list_vms
-      register: vms
-    - name: Force stop VM
-      community.libvirt.virt:
-        name: '{{ ocp_clustername }}.{{ ocp_basedomain }}'
-        state: destroyed
-      when: 'ocp_clustername + "." + ocp_basedomain in vms.list_vms'
-    - name: Delete VM
-      community.libvirt.virt:
-        name: '{{ ocp_clustername }}.{{ ocp_basedomain }}'
-        command: undefine
-      when: 'ocp_clustername + "." + ocp_basedomain in vms.list_vms'
-    - name: Delete VM's disks if exists
-      file:
-        path: "{{ vm_disk_location }}-{{ item }}.qcow2"
-        state: absent
-      loop: "{{ pvs | list + ['os'] }}"
-    - name: Delete install ISO
-      become: true
-      file:
-        path: "{{ vm_iso_location }}"
-        state: absent
+    - name: Remove SingleNodeCluster
+      tags:
+      - new_install
+      block:
+      - name: Get VMs
+        community.libvirt.virt:
+          command: list_vms
+        register: vms
+      - name: Force stop VM
+        community.libvirt.virt:
+          name: '{{ ocp_clustername }}.{{ ocp_basedomain }}'
+          state: destroyed
+        when: 'ocp_clustername + "." + ocp_basedomain in vms.list_vms'
+      - name: Delete VM
+        community.libvirt.virt:
+          name: '{{ ocp_clustername }}.{{ ocp_basedomain }}'
+          command: undefine
+        when: 'ocp_clustername + "." + ocp_basedomain in vms.list_vms'
+      - name: Delete VM's disks if exists
+        file:
+          path: "{{ vm_disk_location }}-{{ item }}.qcow2"
+          state: absent
+        loop: "{{ pvs | list + ['os'] }}"
+      - name: Delete install ISO
+        become: true
+        file:
+          path: "{{ vm_iso_location }}"
+          state: absent
   roles:
-    - ocp_prep
+    - role: ocp_prep
+      tags:
+      - new_install
     - vm_install
     - localstorage_deploy
     - awx_deploy
