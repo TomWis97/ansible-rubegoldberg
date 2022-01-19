@@ -299,7 +299,7 @@
     workflow_template: "Run Ansible-RubeGoldberg"
     wait: True
   register: start_workflow_template_status
-  retries: 3
+  retries: 5
   delay: 120
   until: start_workflow_template_status is not failed
 
