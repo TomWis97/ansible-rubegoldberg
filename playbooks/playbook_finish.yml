@@ -15,7 +15,8 @@
         metadata:
           labels:
             tekton.dev/pipeline: sphinx-pipeline
-          generateName: sphinx-pipeline-run-
+              #generateName: sphinx-pipeline-run-
+          name: sphinx-pipeline-run-{{ lookup('community.general.random_string', length=5, special=no, upper=no) }}
         spec:
           params:
           - name: git-url
