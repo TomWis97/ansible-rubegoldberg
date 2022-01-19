@@ -80,10 +80,28 @@
     wait: yes
     definition: "{{ lookup('template', 'AWX.yml.j2') }}"
 
-- name: Wait for AWX to become ready
-  uri:
-    url: "http://awx.apps.{{ ocp_clustername }}.{{ ocp_basedomain }}/api/v2/ping/"
-  register: awx_status
-  retries: 60
-  delay: 10
-  until: awx_status.status == 200
+- name: Wait for AWX
+  block:
+  - name: Wait for AWX to become ready
+    uri:
+      url: "http://awx.apps.{{ ocp_clustername }}.{{ ocp_basedomain }}/api/v2/ping/"
+    register: awx_status
+    retries: 60
+    delay: 10
+    until: awx_status.status == 200
+  rescure:
+  - name: Remove AWX pod
+    kubernetes.core.k8s:
+      kubeconfig: "{{ kubeconfig_location }}"
+      namespace: "{{ awx_namespace }}"
+      name: "{{ lookup('kubernetes.core.k8s', kubeconfig=kubeconfig_location, namespace=awx_namespace, kind='Pod', api_version='v1') | json_query('[].metadata.name') | select('match', 'awx-.{10}-.*') | list | first }}"
+      kind: Pod
+      api_version: v1
+      state: absent
+  - name: Wait for AWX to become ready after restarting AWX
+    uri:
+      url: "http://awx.apps.{{ ocp_clustername }}.{{ ocp_basedomain }}/api/v2/ping/"
+    register: awx_status
+    retries: 30
+    delay: 2
+    until: awx_status.status == 200
