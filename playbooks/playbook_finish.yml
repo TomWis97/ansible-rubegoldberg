@@ -37,5 +37,5 @@
     register: website_status
     retries: 60
     delay: 10
-    until: website_status == 200
+    until: website_status.status == 200
     
