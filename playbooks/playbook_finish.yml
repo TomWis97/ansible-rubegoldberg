@@ -33,7 +33,7 @@
               claimName: pipeline-data
   - name: Wait for website to be online
     uri:
-      url: "http://sphinx.apps.{{ ocp_clustername }}.{{ ocp_basedomain }}"
+      url: "http://website-sphinx.apps.{{ ocp_clustername }}.{{ ocp_basedomain }}"
     register: website_status
     retries: 60
     delay: 10
