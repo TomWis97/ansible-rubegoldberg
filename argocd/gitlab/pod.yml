@@ -1,0 +1,90 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  #  annotations:
+  #    openshift.io/scc: restricted
+  labels:
+    deployment: gitlab-ee
+    pod-template-hash: 84c7df94c7
+  name: gitlab-ee-test
+  namespace: gitlab
+spec:
+  containers:
+  - image: gitlab/gitlab-ee:latest
+    imagePullPolicy: IfNotPresent
+    name: gitlab-ee
+    ports:
+    - containerPort: 22
+      protocol: TCP
+    - containerPort: 443
+      protocol: TCP
+    - containerPort: 80
+      protocol: TCP
+    resources: {}
+    securityContext:
+      privileged: true
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /etc/gitlab
+      name: gitlab-ee-volume-1
+    - mountPath: /var/log/gitlab
+      name: gitlab-ee-volume-2
+    - mountPath: /var/opt/gitlab
+      name: gitlab-ee-volume-3
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-cww2f
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  imagePullSecrets:
+  - name: default-dockercfg-8wpbx
+  nodeName: localhost
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext:
+    privileged: true
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - emptyDir: {}
+    name: gitlab-ee-volume-1
+  - emptyDir: {}
+    name: gitlab-ee-volume-2
+  - emptyDir: {}
+    name: gitlab-ee-volume-3
+  - name: kube-api-access-cww2f
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+      - configMap:
+          items:
+          - key: service-ca.crt
+            path: service-ca.crt
+          name: openshift-service-ca.crt

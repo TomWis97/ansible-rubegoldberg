@@ -1,5 +1,6 @@
 ---
 - hosts: localhost
   roles:
-    - gitlab_configure
-    - gitlab_repos
+    - gitlab_deploy
+      #- gitlab_configure
+      #- gitlab_repos

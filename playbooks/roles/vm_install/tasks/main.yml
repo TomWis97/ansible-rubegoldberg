@@ -24,6 +24,23 @@
       command: start
       name: "{{ ocp_clustername }}.{{ ocp_basedomain }}"
 
+        #- name: Wait for SSH to accept connections
+        #  delegate_to: "api.{{ ocp_clustername }}.{{ ocp_basedomain }}"
+        #  remote_user: core
+        #  ansible.builtin.wait_for_connection:
+        #    timeout: 300
+
+        #- name: Configure hostname on VM
+        #  delegate_to: "api.{{ ocp_clustername }}.{{ ocp_basedomain }}"
+        #  remote_user: core
+        #  delay: 2
+        #  retries: 60
+        #  become: True
+        #  # Hostname module is not supported in RHCOS. So hopefully this will do.
+        #  command: hostnamectl set-hostname sno.{{ ocp_clustername }}.{{ ocp_basedomain }}
+        #  #ansible.builtin.hostname:
+        #  #  name: "sno.{{ ocp_clustername }}.{{ ocp_basedomain }}"
+
 - name: Wait for OpenShift API to become ready
   kubernetes.core.k8s_info:
     api_version: "config.openshift.io/v1"
@@ -38,3 +55,12 @@
   retries: 60
   delay: 60
   tags: wait_for
+
+  #- name: Create hostname machineconfig
+  #  kubernetes.core.k8s:
+  #    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+  #    username: "{{ openshift_user | default(omit) }}"
+  #    password: "{{ openshift_password | default(omit) }}"
+  #    wait: yes
+  #    apply: yes
+  #    definition: "{{ lookup('template', 'mc-hostname.yaml') }}"

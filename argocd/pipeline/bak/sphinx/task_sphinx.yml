@@ -1,0 +1,21 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: sphinx
+spec:
+  resources:
+    inputs:
+      - name: repo
+        type: git
+        targetPath: repo
+  workspaces:
+    - name: data
+      description: Pipeline data containing html files
+  steps:
+    - name: render-html
+      image: sphinxdoc/sphinx
+      script: |
+        #!/bin/bash
+        set -xe
+        pip3 install -r /workspace/repo/requirements.txt
+        sphinx-build /workspace/repo/source $(workspaces.data.path)/html

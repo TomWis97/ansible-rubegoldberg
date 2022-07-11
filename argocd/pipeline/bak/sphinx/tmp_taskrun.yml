@@ -1,0 +1,26 @@
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  annotations:
+    pipeline.tekton.dev/release: 9419cdf
+  generateName: sphinx-run-
+  labels:
+    app.kubernetes.io/managed-by: tekton-pipelines
+    tekton.dev/task: sphinx
+  name: sphinx-run-qzt6k
+  namespace: sphinx
+spec:
+  resources:
+    inputs:
+    - name: repo
+      resourceRef:
+        name: website
+  serviceAccountName: pipeline
+  taskRef:
+    kind: Task
+    name: sphinx
+  timeout: 1h0m0s
+  workspaces:
+  - name: data
+    persistentVolumeClaim:
+      claimName: pipeline-data

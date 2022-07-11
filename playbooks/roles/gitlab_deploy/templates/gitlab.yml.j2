@@ -8,5 +8,7 @@ spec:
     version: {{ gitlab_chart_version }}
     values:
       global:
+        ingress:
+          configureCertmanager: false
         hosts:
           domain: apps.{{ ocp_clustername }}.{{ ocp_basedomain }}

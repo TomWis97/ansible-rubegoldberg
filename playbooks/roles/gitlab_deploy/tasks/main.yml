@@ -53,14 +53,15 @@
     definition: "{{ cert_manager_definition.content }}"
 
 - name: Apply GitLab operator
+  #TODO Apply breaks!!!
   kubernetes.core.k8s:
     kubeconfig: "{{ kubeconfig_location | default(omit) }}"
     username: "{{ openshift_user | default(omit) }}"
     password: "{{ openshift_password | default(omit) }}"
     apply: yes
     wait: yes
-    namespace: "{{ gitlab_namespace }}"
-    definition: "{{ gitlab_operator_definition.content | replace('apiextensions.k8s.io/v1beta1', 'apiextensions.k8s.io/v1') | replace('rbac.authorization.k8s.io/v1beta1', 'rbac.authorization.k8s.io/v1') | replace('cert-manager.io/v1alpha2', 'cert-manager.io/v1') | replace('admissionregistration.k8s.io/v1beta1', 'admissionregistration.k8s.io/v1') }}"
+    #namespace: "{{ gitlab_namespace }}"
+    definition: "{{ gitlab_operator_definition.content }}"
 
 - name: Get GitLab Chart versions
   uri:

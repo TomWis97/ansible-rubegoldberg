@@ -14,19 +14,26 @@
         - cluster
     - name: Download openshift-install
       get_url:
-        url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-install-linux.tar.gz
+        url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-{{ ocp_version }}/openshift-install-linux.tar.gz
         dest: '{{ workdir.path }}/downloads/openshift-install-linux.tar.gz'
     - name: Unpack openshift-install
       unarchive:
         src: '{{ workdir.path }}/downloads/openshift-install-linux.tar.gz'
         dest: '{{ workdir.path }}/downloads/'
+    - name: Retrieve RHCOS ISO URL
+      command:
+        chdir: '{{ workdir.path }}/cluster'
+        cmd: '{{ workdir.path }}/downloads/openshift-install coreos print-stream-json'
+      register: rhcos_iso_data
     - name: Download RHCOS ISO
       get_url:
-        url: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{ ocp_version }}/latest/rhcos-live.x86_64.iso
+        #url: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{ ocp_version }}/latest/rhcos-live.x86_64.iso
+        url: "{{ rhcos_iso_data.stdout | from_json | json_query('architectures.x86_64.artifacts.metal.formats.iso.disk.location') }}"
         dest: '{{ workdir.path }}/downloads/rhcos-live.iso'
     - name: Download coreos-installer
       get_url:
-        url: https://mirror.openshift.com/pub/openshift-v4/clients/coreos-installer/latest/coreos-installer
+        #url: https://mirror.openshift.com/pub/openshift-v4/clients/coreos-installer/latest/coreos-installer
+        url: https://mirror.openshift.com/pub/openshift-v4/clients/coreos-installer/v0.12.0-1/coreos-installer
         dest: '{{ workdir.path }}/downloads/coreos-installer'
         mode: '755'
     - name: Create install-config.yaml from template
@@ -37,12 +44,12 @@
       command:
         chdir: '{{ workdir.path }}/cluster'
         cmd: '{{ workdir.path }}/downloads/openshift-install create single-node-ignition-config'
-    - name: Add hostname to ignition config
-      copy:
-        dest: "{{ workdir.path }}/cluster/bootstrap-in-place-for-live-iso.ign"
-        #content: "{{ lookup('file', workdir.path + '/cluster/bootstrap-in-place-for-live-iso.ign') | from_json | combine({'storage': {'files': [{'mode': 0444 , 'overwrite': True, 'path': '/etc/hostname', 'contents': {'source': 'data:text/plain;charset=utf-8;base64,' + ('sno.' + ocp_clustername + ocp_basedomain)|b64encode}}]}}, recursive=True, list_merge='append') | to_json }}"
-        content: "{{ lookup('file', workdir.path + '/cluster/bootstrap-in-place-for-live-iso.ign') | from_json | combine({'storage': {'files': [{'overwrite': True, 'path': '/etc/hostname', 'contents': {'source': 'data:text/plain;charset=utf-8;base64,' + ('sno.' + ocp_clustername + ocp_basedomain)|b64encode}}]}}, recursive=True, list_merge='append') | to_json }}"
-
+        #    - name: Add hostname to ignition config
+        #      copy:
+        #        dest: "{{ workdir.path }}/cluster/bootstrap-in-place-for-live-iso.ign"
+        #        #content: "{{ lookup('file', workdir.path + '/cluster/bootstrap-in-place-for-live-iso.ign') | from_json | combine({'storage': {'files': [{'mode': 0444 , 'overwrite': True, 'path': '/etc/hostname', 'contents': {'source': 'data:text/plain;charset=utf-8;base64,' + ('sno.' + ocp_clustername + ocp_basedomain)|b64encode}}]}}, recursive=True, list_merge='append') | to_json }}"
+        #        content: "{{ lookup('file', workdir.path + '/cluster/bootstrap-in-place-for-live-iso.ign') | from_json | combine({'storage': {'files': [{'overwrite': True, 'path': '/etc/hostname', 'contents': {'source': 'data:text/plain;charset=utf-8;base64,' + ('sno.' + ocp_clustername + ocp_basedomain)|b64encode}}]}}, recursive=True, list_merge='append') | to_json }}"
+        #
     - name: Embed ignition config in ISO
       command:
         chdir: '{{ workdir.path }}'

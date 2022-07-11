@@ -1,16 +1,10 @@
 apiVersion: v1
 baseDomain: {{ ocp_basedomain }}
 compute:
-- architecture: amd64
-  hyperthreading: Enabled
-  name: worker
-  platform: {}
+- name: worker
   replicas: 0
 controlPlane:
-  architecture: amd64
-  hyperthreading: Enabled
   name: master
-  platform: {}
   replicas: 1
 metadata:
   name: {{ ocp_clustername }}
@@ -18,16 +12,13 @@ networking:
   clusterNetwork:
   - cidr: {{ ocp_clusternetwork }}
     hostPrefix: 23
-  machineNetwork:
-  - cidr: {{ ocp_machinenetwork }}
-  networkType: OpenShiftSDN
+  networkType: OVNKubernetes
   serviceNetwork:
   - {{ ocp_servicenetwork }}
 platform:
   none: {}
-BootstrapInPlace:
-  InstallationDisk: {{ ocp_installationdisk }}
-publish: External
+bootstrapInPlace:
+  installationDisk: {{ ocp_installationdisk }}
 pullSecret: |
         {{ ocp_pullsecret }}
 sshKey: |

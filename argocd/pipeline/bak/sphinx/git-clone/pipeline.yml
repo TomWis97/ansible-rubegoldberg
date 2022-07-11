@@ -1,0 +1,63 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: sphinx-pipeline
+spec:
+  params:
+    - name: git-url
+      type: string
+      description: URL of git repo with markdown docs
+    - name: git-revision
+      type: string
+      description: Revision to be used from repo of the code for deployment
+      default: master
+  workspaces:
+    - name: data
+  tasks:
+  - name: fetch-repository
+    taskRef:
+      name: git-clone
+      kind: ClusterTask
+    workspaces:
+      - name: output
+        workspace: data
+    params:
+      - name: url
+        value: $(params.git-url)
+      - name: subdirectory
+        value: "repo"
+      - name: deleteExisting
+        value: "true"
+      - name: sslVerify
+        value: "false"
+          #- name: revision
+          #  value: $(params.git-revision)
+  - name: build-html
+    runAfter:
+      - fetch-repository
+    taskRef:
+      name: sphinx-gitclone
+    workspaces:
+      - name: data
+        workspace: data
+    params:
+      - name: inputdir
+        value: $(workspaces.data.path)/repo
+      - name: outputdir
+        value: $(workspaces.data.path)/html
+  - name: create-image
+    runAfter:
+      - build-html
+    taskRef:
+      name: s2i-php
+      kind: ClusterTask
+    workspaces:
+      - name: source
+        workspace: data
+    params:
+      - name: PATH_CONTEXT
+        value: html
+      - name: TLSVERIFY
+        value: "false"
+      - name: IMAGE
+        value: sphinx/website

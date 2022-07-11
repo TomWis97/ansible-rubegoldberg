@@ -1,0 +1,17 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: sphinx
+spec:
+  workspaces:
+    - name: data
+  resources:
+    - name: repo
+      type: git
+  tasks:
+  - name: build-html
+    taskRef:
+      name: sphinx
+    workspaces:
+      - name: data
+        workspace: data

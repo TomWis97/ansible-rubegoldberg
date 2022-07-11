@@ -1,0 +1,26 @@
+kind: List
+apiVersion: v1
+items:
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    name: ansible-rubegoldberg-ee
+  spec:
+    source:
+      dockerfile: |
+        FROM quay.io/ansible/awx-ee:latest
+        RUN pip3 install kubernetes
+    strategy:
+      type: Docker
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ansible-rubegoldberg-ee:latest
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    name: ansible-rubegoldberg-ee
+    namespace: awx
+  spec:
+    lookupPolicy:
+      local: false

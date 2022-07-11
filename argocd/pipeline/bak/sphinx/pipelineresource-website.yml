@@ -1,0 +1,12 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: website
+  namespace: sphinx
+spec:
+  params:
+  - name: url
+    value: https://root:plschange@gitlab.apps.ocp.int.tomwishaupt.nl/ansible-rubegoldberg/website.git
+  - name: sslVerify
+    value: "false"
+  type: git

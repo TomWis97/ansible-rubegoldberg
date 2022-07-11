@@ -1,0 +1,28 @@
+---
+- name: List all ClusterOperators
+  k8s_info:
+    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+    username: "{{ openshift_user | default(omit) }}"
+    password: "{{ openshift_password | default(omit) }}"
+    api_version: "config.openshift.io/v1"
+    kind: ClusterOperator
+  register: cos
+- name: Check if all operators are not Degraded or Progressing
+  k8s_info:
+    kubeconfig: "{{ kubeconfig_location | default(omit) }}"
+    username: "{{ openshift_user | default(omit) }}"
+    password: "{{ openshift_password | default(omit) }}"
+    api_version: "config.openshift.io/v1"
+    kind: ClusterOperator
+    name: "{{ item.metadata.name }}"
+  register: cos_status
+  loop: "{{ cos.resources }}"
+  loop_control:
+    label: "{{ item.metadata.name }}"
+  delay: 30
+  retries: 240
+  until:
+    - "'resources' in cos_status"
+    - ( cos_status.resources[0].status.conditions | selectattr('type', 'search', 'Degraded') | list | first).status == "False"
+    - ( cos_status.resources[0].status.conditions | selectattr('type', 'search', 'Progressing') | list | first).status == "False"
+    - ( cos_status.resources[0].status.conditions | selectattr('type', 'search', 'Available') | list | first).status == "True"

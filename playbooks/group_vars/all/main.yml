@@ -13,8 +13,8 @@ awx_pg_user: awxuser
 awx_pg_password: supersecret
 awx_pg_service: awx-postgres
 awx_admin_password: admin
-gitlab_namespace: gitlab
-ocp_version: '4.9'
+gitlab_namespace: gitlab-system
+ocp_version: '4.10'
 ocp_clusternetwork: '10.128.0.0/14'
 ocp_servicenetwork: '172.30.0.0/16'
 ocp_installationdisk: /dev/vda
@@ -42,3 +42,15 @@ pvs:
   pipeline-data:
     size_gb: 5
     dev: vdf
+  gitlab-instance-gitaly:
+    size_gb: 5
+    dev: vdg
+  gitlab-instance-postgresql:
+    size_gb: 5
+    dev: vdh
+  gitlab-instance-minio:
+    size_gb: 5
+    dev: vdi
+  gitlab-instance-redis:
+    size_gb: 5
+    dev: vdj

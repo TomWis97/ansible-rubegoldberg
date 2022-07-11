@@ -39,3 +39,6 @@
     delay: 10
     until: website_status.status == 200
     
+- hosts: localhost
+  roles:
+  - ocp_check_operators

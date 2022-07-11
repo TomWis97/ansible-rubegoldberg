@@ -1,0 +1,5 @@
+---
+- hosts: localhost
+  roles:
+  - ocp_check_operators
+

@@ -34,6 +34,7 @@
       tags:
       - new_install
     - vm_install
+    - ocp_check_operators
     - localstorage_deploy
     - awx_deploy
     - awx_configure
