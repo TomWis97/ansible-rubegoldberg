@@ -13,7 +13,7 @@
 
 - name: Download GitLab Operator definition
   uri:
-    url: "https://gitlab.com/api/v4/projects/18899486/packages/generic/gitlab-operator/{{ gitlab_operator_version }}/gitlab-operator-kubernetes-{{ gitlab_operator_version }}.yaml"
+    url: "https://gitlab.com/api/v4/projects/18899486/packages/generic/gitlab-operator/{{ gitlab_operator_version }}/gitlab-operator-openshift-{{ gitlab_operator_version }}.yaml"
     return_content: true
   register: gitlab_operator_definition
 
@@ -27,7 +27,7 @@
 
 - name: Get cert-manager for GitLab
   uri:
-    url: https://github.com/jetstack/cert-manager/releases/download/v1.6.0/cert-manager.yaml
+    url: https://github.com/jetstack/cert-manager/releases/download/v1.6.1/cert-manager.yaml
     return_content: true
   register: cert_manager_definition
 
